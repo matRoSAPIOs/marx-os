@@ -1,0 +1,16 @@
+[package]
+name = "hello"
+version = "0.1.0"
+edition = "2021"
+description = "First MarX-OS app — opens a window saying hi"
+
+[[bin]]
+name = "hello"
+path = "src/main.rs"
+
+[dependencies]
+marx-sdk = { path = "../../sdk" }
+
+# Apps are bare-metal ELFs: no std, no libc, no startup code.  Same target
+# as the kernel (x86_64-unknown-none) but built as a position-independent
+# executable so the kernel ELF loader can place them anywhere in memory.

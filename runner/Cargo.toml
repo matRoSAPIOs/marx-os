@@ -1,0 +1,8 @@
+[package]
+name = "marx-runner"
+version = "0.1.0"
+edition = "2021"
+description = "Builds bootable MarX-OS disk image and launches QEMU"
+
+[build-dependencies]
+bootloader = "0.11"

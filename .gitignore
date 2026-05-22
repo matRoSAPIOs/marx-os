@@ -1,0 +1,18 @@
+# Build artifacts
+/target
+**/target
+
+# Disk / boot images produced by the build
+*.bin
+*.img
+*.iso
+
+# Editor / OS cruft
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# NOTE: Cargo.lock IS committed on purpose — MarX-OS is an application/OS,
+# not a library, so we want fully reproducible builds.

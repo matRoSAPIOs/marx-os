@@ -1,0 +1,4 @@
+# ld.exe из MSYS2 mingw не умеет в кириллицу в путях.
+# Уводим build-каталог в ASCII-путь, иначе линковка падает.
+[build]
+target-dir = "C:/marx-build/target"

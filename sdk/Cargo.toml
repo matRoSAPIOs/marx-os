@@ -1,0 +1,9 @@
+[package]
+name = "marx-sdk"
+version = "0.1.0"
+edition = "2021"
+description = "MarX-OS app SDK — shared between kernel and apps"
+
+[lib]
+# Pure Rust library, no_std-compatible. Both kernel and apps depend on this
+# crate to agree on the ABI (KernelServices struct + event/window types).

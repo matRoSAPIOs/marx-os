@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = ["kernel", "runner", "sdk", "apps/hello", "apps/calculator"]
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+
+# Apps are built for x86_64-unknown-none (same as kernel). Optimise for size
+# so the .elf files that end up in MARXARCH stay small.
+[profile.release-app]
+inherits = "release"
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = "debuginfo"

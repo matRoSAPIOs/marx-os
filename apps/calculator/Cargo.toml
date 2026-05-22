@@ -1,0 +1,12 @@
+[package]
+name = "calculator"
+version = "0.1.0"
+edition = "2021"
+description = "Four-function calculator for MarX-OS"
+
+[[bin]]
+name = "calculator"
+path = "src/main.rs"
+
+[dependencies]
+marx-sdk = { path = "../../sdk" }

@@ -1,0 +1,32 @@
+[package]
+name = "marx-kernel"
+version = "0.1.0"
+edition = "2021"
+description = "MarX-OS kernel — bare-metal x86_64"
+
+[build-dependencies]
+# Host-side PNG decode + resize for the boot splash image.
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+
+[dependencies]
+bootloader_api = "0.11"
+marx-sdk = { path = "../sdk" }
+
+# CPU primitives: GDT, IDT, segment regs, port I/O, cli/sti, hlt, etc.
+x86_64 = "0.15"
+
+# 8259 Programmable Interrupt Controller (PIC) — for legacy IRQs.
+pic8259 = "0.11"
+
+# Scancode -> Key/Char decoder for PS/2 keyboards.
+pc-keyboard = "0.8"
+
+# Spin-lock based Mutex (no_std-friendly).
+spin = "0.9"
+
+# Heap allocator backed by a linked list of free blocks. Registered as
+# #[global_allocator] in kernel/src/allocator.rs.
+linked_list_allocator = "0.10"
+
+# TrueType font rasteriser. `libm` feature gives us float math without std.
+ab_glyph = { version = "0.2", default-features = false, features = ["libm"] }

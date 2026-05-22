@@ -1,0 +1,9 @@
+Welcome to MarX-OS!
+
+This text was loaded from a real disk image by the kernel's
+ATA PIO driver, parsed by the in-house MARXARCH filesystem,
+and printed to both the serial port and the framebuffer.
+
+A small but real OS milestone.
+
+   - MarX
