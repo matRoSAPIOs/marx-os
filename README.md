@@ -1,100 +1,56 @@
 # MarX-OS
 
-> A hobby x86_64 operating system written **from scratch** in Rust — booting on
-> bare metal, with a **Frutiger Aero** glass desktop. Not a Linux distro. Its own
-> kernel, scheduler, filesystem, window manager, and ELF app loader.
+A hobby x86_64 operating system written from scratch in Rust. Boots on bare
+metal (under QEMU), Frutiger-Aero-styled glass desktop, runtime ELF app loader.
 
-<!-- TODO: add a screenshot / GIF of the desktop here — it's the hook.
-     A short clip of dragging windows + opening the calculator + the Start
-     menu shows it off best. Once you have docs/screenshot.png, uncomment:
-     ![MarX-OS desktop](docs/screenshot.png) -->
+Not a Linux distro — its own kernel, scheduler, filesystem, window manager,
+and app SDK.
 
----
+## Features
 
-## About this project (read me — it's honest)
-
-I always dreamed of building my own operating system — not a themed Linux
-distro, a **real one from scratch**. The problem: I couldn't program. For years
-I just watched videos and wished.
-
-With the arrival of AI I finally started building. To be upfront: **most of the
-code was written with heavy AI assistance.** My role was the architect /
-director — deciding what to build and in what order, testing every step,
-hunting bugs, choosing the look and feel, and learning how an OS actually works
-along the way. I don't claim to be a systems programmer. This is a passion
-project and a way to understand computers at the deepest level.
-
-I'm sharing it because building it makes me genuinely happy, and maybe it'll
-make someone else happy too. ✨
-
-If you think that's not "real" — that's okay. Linux 0.01 was ~10,000 lines with
-no GUI. Every developer stands on tools: compilers, libraries, Stack Overflow.
-AI is just the newest one.
-
----
-
-## What it actually does
-
-This is **not** a toy that prints "Hello World" and halts. It is a working
-operating system with:
-
-- **Custom kernel** (bare-metal x86_64, `no_std` Rust) — boots via the
-  `bootloader` crate
-- **Memory management** — paging + frame allocator + a heap (`Box`, `Vec`,
-  `String` all work)
-- **Preemptive scheduler** — multiple tasks, context switching in hand-written
+- **Kernel** — bare-metal x86_64, `no_std` Rust, boots via the `bootloader`
+  crate
+- **Memory** — paging + frame allocator + heap (`Box`, `Vec`, `String`)
+- **Scheduler** — preemptive, multi-task, context switch in hand-written
   assembly, timer-driven preemption
-- **Drivers** — PIO ATA disk, PS/2 keyboard, PS/2 mouse, a framebuffer
-  compositor with a backbuffer
-- **Filesystem** — *MARXARCH*, a custom read-only archive format on a real IDE
-  disk
-- **TTF text rendering** — antialiased glyphs (Inter font) blended onto the
-  framebuffer
-- **Window manager** — multiple windows, z-order, click-to-raise focus,
-  dragging, minimize, a taskbar with Start button + clock, a Start menu, and a
-  right-click desktop context menu
-- **Frutiger Aero theme** — translucent glass title bars, soft multi-layer
-  drop shadows, glossy highlights, a real bubble wallpaper
-- **ELF app loader** — loads static-PIE `.elf` executables from disk at
-  runtime, applies relocations, and runs them as scheduler tasks
-- **App SDK** (`marx-sdk`) — a stable ABI so apps can open windows, draw, read
-  files, and receive mouse/keyboard events from the kernel
-- **Real apps** — a `hello` window demo and a four-function `calculator`
-  (mouse + keyboard), each compiled to its own `.elf`
-- **Power** — ACPI shutdown and 8042 reboot from the Start menu
-
----
+- **Drivers** — PIO ATA disk, PS/2 keyboard, PS/2 mouse, framebuffer
+  compositor with backbuffer
+- **Filesystem** — *MARXARCH*, a custom read-only archive on a real IDE disk
+- **TTF text** — antialiased glyphs (Inter) alpha-blended onto the framebuffer
+- **Window manager** — multi-window, z-order, click-to-raise focus, drag,
+  minimize, taskbar with Start button + clock, Start menu, right-click context
+  menu
+- **Frutiger Aero theme** — translucent glass title bars, multi-layer soft
+  drop shadows, glossy highlights, bubble wallpaper
+- **ELF loader** — loads static-PIE ELF executables from disk at runtime,
+  applies `R_X86_64_RELATIVE` relocations, runs them as scheduler tasks
+- **App SDK** (`marx-sdk`) — stable ABI: window mgmt, draw, fs, mouse +
+  keyboard events
+- **Apps** — `hello` (window demo) and `calculator` (four-function, mouse +
+  keyboard), each a separate `.elf` shipped in MARXARCH
+- **Power** — ACPI shutdown + 8042 reboot from the Start menu
 
 ## Build & run
 
-**Requirements:** Windows, [Rust nightly](https://rustup.rs/) (the toolchain is
-pinned in `rust-toolchain.toml`), and [QEMU](https://www.qemu.org/) installed at
-`C:\Program Files\qemu`.
+Requirements: Windows, [Rust nightly](https://rustup.rs/) (toolchain pinned in
+`rust-toolchain.toml`), [QEMU](https://www.qemu.org/) at `C:\Program Files\qemu`.
 
-The easiest way — just double-click:
+One-click:
 
-- **`run.bat`** — debug build, builds everything and launches QEMU
-- **`run-fast.bat`** — release build (smoother under QEMU's TCG)
+- `run.bat` — debug build, launches QEMU
+- `run-fast.bat` — release build (smoother under QEMU TCG)
 
-Both build the kernel, the apps, and the runner, assemble the disk images, and
-boot. After QEMU exits, the serial log is printed (also saved to
-`C:\marx-build\serial.log`).
+Both build kernel + apps + runner, assemble the disk images, boot. Serial log
+is saved to `C:\marx-build\serial.log` and printed when QEMU exits.
 
-Manual build:
+Manual:
 
 ```powershell
-# Kernel (bare-metal target)
 cargo build -p marx-kernel --target x86_64-unknown-none --release
-
-# Apps (size-optimised profile)
 cargo build -p hello      --target x86_64-unknown-none --profile release-app
 cargo build -p calculator --target x86_64-unknown-none --profile release-app
-
-# Runner (host) — assembles disk images and launches QEMU
-cargo run -p marx-runner --release
+cargo run   -p marx-runner --release
 ```
-
----
 
 ## Project layout
 
@@ -123,9 +79,9 @@ marx-os/
 
 ## How apps work
 
-Apps are ordinary Rust crates that depend on `marx-sdk`, compile to
+Apps are Rust crates that depend on `marx-sdk`, compile to
 `x86_64-unknown-none` as static-PIE ELF binaries, and get bundled into the
-MARXARCH disk image. At runtime the kernel:
+MARXARCH disk image at build time. At runtime the kernel:
 
 1. Reads the `.elf` off the disk
 2. Parses it, copies its segments into a fresh heap buffer, applies
@@ -133,11 +89,6 @@ MARXARCH disk image. At runtime the kernel:
 3. Hands the app a `KernelServices` vtable (`window_open`, `draw_rect`,
    `draw_text`, `event_poll`, `fs_read`, …)
 4. Spawns it as a scheduler task
-
-This is the same idea as a real OS executable format — apps are genuinely
-separate programs loaded from disk, not compiled into the kernel.
-
----
 
 ## Roadmap
 
@@ -150,14 +101,10 @@ separate programs loaded from disk, not compiled into the kernel.
 - [ ] **9.6** Terminal app
 - [ ] **9.7** File manager
 - [ ] **9.8** Visual polish (icons, animations, tooltips, toasts)
-- [ ] **10** Networking (e1000 + smoltcp) → HTTP/HTTPS → a text web browser
-- [ ] **11+** Audio, video, more apps…
+- [ ] **10** Networking (e1000 + smoltcp) → HTTP/HTTPS → text web browser
+- [ ] **11+** Audio, video, more apps
 
----
-
-## Credits & tech
-
-Built on the shoulders of great open-source work:
+## Credits
 
 - [Rust](https://www.rust-lang.org/) (nightly, `no_std`)
 - [`bootloader`](https://github.com/rust-osdev/bootloader) — boot + framebuffer
@@ -165,9 +112,9 @@ Built on the shoulders of great open-source work:
 - [`ab_glyph`](https://github.com/alexheretic/ab-glyph) — TTF rasterisation
 - [`image`](https://github.com/image-rs/image) — build-time asset decoding
 - [Inter](https://rsms.me/inter/) font (SIL OFL 1.1)
-- Architecture inspired by [Philipp Oppermann's *Writing an OS in
+- Architecture follows [Philipp Oppermann's *Writing an OS in
   Rust*](https://os.phil-opp.com/)
 
 ## License
 
-[MIT](LICENSE) — do whatever you like, just keep the notice.
+[MIT](LICENSE)
